@@ -1,0 +1,78 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Reflection.Emit;
+using System.Xml;
+using HarmonyLib;
+using MonoMod.Utils;
+using TeamCherry.Localization;
+using File = System.IO.File;
+
+namespace SimpleSilksongLocalizer;
+
+public static class LanguagePatch
+{
+    
+    [HarmonyPatch(typeof(Language), nameof(Language.DoSwitch))]
+    [HarmonyTranspiler]
+    static IEnumerable<CodeInstruction> SlackenXmlReader(IEnumerable<CodeInstruction> instructions)
+    {
+        var match = new CodeMatcher(instructions)
+            .MatchForward(false,
+                new CodeMatch(OpCodes.Call, AccessTools.Method(typeof(XmlReader), nameof(XmlReader.Create), [typeof(TextReader)])));
+        var newInstr = Transpilers.EmitDelegate<Func<StringReader, XmlReader>>(reader =>
+        {
+            var readerSettings = new XmlReaderSettings { ConformanceLevel = ConformanceLevel.Fragment };
+            return XmlReader.Create(reader, readerSettings);
+        });
+        match.Set(newInstr.opcode, newInstr.operand);
+       return match.InstructionEnumeration();
+    }
+
+    [HarmonyPatch(typeof(Language), nameof(Language.DoSwitch))]
+    [HarmonyPrefix]
+    static void InsertCurrentLanguageExtraStrings()
+    {
+        if (SimpleSilksongLocalizerPlugin.ModExtraEntries.TryGetValue(Language._currentLanguage, out var modEntrySheets))
+        {
+            foreach (var (modSheet, modEntry) in modEntrySheets)
+            {
+                var gameEntries = Language._currentEntrySheets.GetOrInsertNew(modSheet);
+                foreach (var (modKey, modValue) in modEntry)
+                {
+                    gameEntries[modKey] = modValue;
+                }
+            }
+        }
+    }
+    
+    [HarmonyPatch(typeof(Language), nameof(Language.HasLanguageFile))]
+    [HarmonyPostfix]
+    private static void HasModdedLanguageFile(ref bool __result, string lang, string sheetTitle)
+    {
+        if (__result)
+            return;
+        foreach (string dir in SimpleSilksongLocalizerPlugin.ModLanguageDirectories)
+        {
+            if (File.Exists($"{dir}{Path.PathSeparator}{lang}_{sheetTitle}"))
+            {
+                __result = true;
+                break;
+            }
+        }
+    }
+    
+    [HarmonyPatch(typeof(Language), nameof(Language.GetLanguageFileContents))]
+    [HarmonyPostfix]
+    private static void AppendModdedLanguageFileContents(ref string __result, string sheetTitle)
+    {
+        foreach (string dir in SimpleSilksongLocalizerPlugin.ModLanguageDirectories)
+        {
+            var path = $"{dir}{Path.DirectorySeparatorChar}{Language._currentLanguage}_{sheetTitle}";
+            if (File.Exists(path))
+            {
+                __result += File.ReadAllText(path);
+            }
+        }
+    }
+}
