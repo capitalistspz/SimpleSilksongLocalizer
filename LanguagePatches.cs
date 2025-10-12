@@ -30,7 +30,7 @@ public static class LanguagePatch
     }
 
     [HarmonyPatch(typeof(Language), nameof(Language.DoSwitch))]
-    [HarmonyPrefix]
+    [HarmonyPostfix]
     static void InsertCurrentLanguageExtraStrings()
     {
         if (SimpleSilksongLocalizerPlugin.ModExtraEntries.TryGetValue(Language._currentLanguage, out var modEntrySheets))
