@@ -45,14 +45,18 @@ public partial class SimpleSilksongLocalizerPlugin : BaseUnityPlugin
         ArrayUtils.Add(ref Language._settings.sheetTitles, ModRegisteredSheetTitles.ToArray());
         
         harmony.PatchAll(typeof(LanguagePatch));
+        harmony.PatchAll(typeof(MenuLanguageSettingPatch));
         
+        Language.LoadAvailableLanguages();
         Language.LoadLanguage();
     }
 
     private void Unapply()
     {
         harmony.UnpatchSelf();
+        
         Language._settings.sheetTitles = originalSheetTitles;
+        Language.LoadAvailableLanguages();
         Language.LoadLanguage();
     }
 }
