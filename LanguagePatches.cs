@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection.Emit;
 using System.Xml;
 using HarmonyLib;
-using MonoMod.Utils;
 using TeamCherry.Localization;
+using TeamCherry.SharedUtils;
+using UnityEngine;
 using File = System.IO.File;
 
 namespace SimpleSilksongLocalizer;
@@ -46,6 +48,16 @@ public static class LanguagePatch
         }
     }
     
+    private static string GetFallbackLang(string dir, string originalLang)
+    {
+        var fallbackHintPath = Path.Combine(dir, originalLang, "Fallback.txt");
+        if (!File.Exists(fallbackHintPath))
+            return String.Empty;
+        
+        var fallbackLang = File.ReadLines(fallbackHintPath).FirstOrDefault();
+        return !Enum.TryParse(fallbackLang, out LanguageCode _) ? String.Empty : fallbackLang!;
+    }
+    
     [HarmonyPatch(typeof(Language), nameof(Language.HasLanguageFile))]
     [HarmonyPostfix]
     private static void HasModdedLanguageFile(ref bool __result, string lang, string sheetTitle)
@@ -54,25 +66,65 @@ public static class LanguagePatch
             return;
         foreach (string dir in SimpleSilksongLocalizerPlugin.ModLanguageDirectories)
         {
-            if (File.Exists($"{dir}{Path.PathSeparator}{lang}_{sheetTitle}"))
+            var sheetPath = Path.Combine(dir, lang, sheetTitle);
+            if (File.Exists(sheetPath))
             {
                 __result = true;
                 break;
             }
+
+            var fallbackLang = GetFallbackLang(dir, lang);
+            if (String.IsNullOrEmpty(fallbackLang) || fallbackLang == lang) 
+                continue;
+            if (File.Exists(Path.Combine(dir, fallbackLang, sheetTitle)))
+            {
+                __result = true;
+                break;
+            }
+            else
+            {
+                var asset = Resources.Load<TextAsset>($"Languages/{fallbackLang}_{sheetTitle}");
+                if (asset != null)
+                {
+                    __result = true;
+                    break;
+                }
+            }
+            
         }
     }
     
     [HarmonyPatch(typeof(Language), nameof(Language.GetLanguageFileContents))]
     [HarmonyPostfix]
-    private static void AppendModdedLanguageFileContents(ref string __result, string sheetTitle)
+    private static void AddModdedLanguageFileContents(ref string __result, string sheetTitle)
     {
+        var newResult = String.Empty;
         foreach (string dir in SimpleSilksongLocalizerPlugin.ModLanguageDirectories)
         {
-            var path = $"{dir}{Path.DirectorySeparatorChar}{Language._currentLanguage}_{sheetTitle}";
+            var currentLang = Language._currentLanguage.ToString();
+            var fallbackLang = GetFallbackLang(dir, currentLang);
+            if (String.IsNullOrEmpty(fallbackLang) || fallbackLang == currentLang)
+                continue;
+            var fallbackPath = Path.Combine(dir, fallbackLang, sheetTitle);
+            var asset = Resources.Load<TextAsset>($"Languages/{fallbackLang}_{sheetTitle}");
+            if (asset != null)
+            {
+                newResult += Encryption.Decrypt(asset.text);
+            }
+            if (File.Exists(fallbackPath))
+                newResult += File.ReadAllText(fallbackPath);
+        }
+
+        newResult += __result;
+        
+        foreach (string dir in SimpleSilksongLocalizerPlugin.ModLanguageDirectories)
+        {
+            var path = Path.Combine(dir, Language._currentLanguage.ToString(), sheetTitle);
             if (File.Exists(path))
             {
-                __result += File.ReadAllText(path);
+                newResult += File.ReadAllText(path);
             }
         }
+        __result = newResult;
     }
 }
