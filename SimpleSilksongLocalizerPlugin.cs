@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using BepInEx;
 using TeamCherry.Localization;
 
@@ -14,24 +15,33 @@ public partial class SimpleSilksongLocalizerPlugin
     /// </summary>
     public void RegisterSheet(string sheetTitle)
     {
-        ModRegisteredSheetTitles.Add(sheetTitle);
+        ModCustomSheetTitles.Add(sheetTitle);
     }
     /// <summary>
     /// Add a directory in which sheets are located
     /// </summary>
-    public static void AddSheetDirectory(string sheetDirectory)
+    public static void AddLanguageDirectory(string sheetDirectory)
     {
-        ModLanguageDirectories.Add(sheetDirectory);
+        var sheetDirInfo = new DirectoryInfo(sheetDirectory);
+        var settingsFileInfo = sheetDirInfo
+            .EnumerateFiles("LanguageSettings.json")
+            .FirstOrDefault();
+        if (settingsFileInfo == null)
+            return;
+        var settings = Newtonsoft.Json.JsonConvert.DeserializeObject<LanguageSettings>(File.ReadAllText(settingsFileInfo.FullName));
+        if (settings == null)
+            return;
+        ModLanguageDirectories.Add(sheetDirectory, settings);
     }
     
     /// <summary>
     /// Add the default sheet directory for a plugin
     /// </summary>
     /// <param name="plugin">Plugin to find the default sheet directory from</param>
-    public static void AddSheetDirectory(BaseUnityPlugin plugin)
+    public static void AddLanguageDirectory(BaseUnityPlugin plugin)
     {
         var dir = Path.GetDirectoryName(plugin.Info.Location);
-        ModLanguageDirectories.Add(Path.Combine(dir, "Language"));
+        AddLanguageDirectory(Path.Combine(dir, "Language"));
     }
     
     public static void AddSheet(LanguageCode languageCode, string sheet, Dictionary<string, string> entries)

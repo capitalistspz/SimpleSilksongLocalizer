@@ -14,7 +14,6 @@ namespace SimpleSilksongLocalizer;
 
 public static class LanguagePatch
 {
-    
     [HarmonyPatch(typeof(Language), nameof(Language.DoSwitch))]
     [HarmonyTranspiler]
     static IEnumerable<CodeInstruction> SlackenXmlReader(IEnumerable<CodeInstruction> instructions)
@@ -48,23 +47,13 @@ public static class LanguagePatch
         }
     }
     
-    private static string GetFallbackLang(string dir, string originalLang)
-    {
-        var fallbackHintPath = Path.Combine(dir, originalLang, "Fallback.txt");
-        if (!File.Exists(fallbackHintPath))
-            return String.Empty;
-        
-        var fallbackLang = File.ReadLines(fallbackHintPath).FirstOrDefault();
-        return !Enum.TryParse(fallbackLang, out LanguageCode _) ? String.Empty : fallbackLang!;
-    }
-    
     [HarmonyPatch(typeof(Language), nameof(Language.HasLanguageFile))]
     [HarmonyPostfix]
     private static void HasModdedLanguageFile(ref bool __result, string lang, string sheetTitle)
     {
         if (__result)
             return;
-        foreach (string dir in SimpleSilksongLocalizerPlugin.ModLanguageDirectories)
+        foreach (var (dir, settings) in SimpleSilksongLocalizerPlugin.ModLanguageDirectories)
         {
             var sheetPath = Path.Combine(dir, lang, sheetTitle);
             if (File.Exists(sheetPath))
@@ -73,8 +62,9 @@ public static class LanguagePatch
                 break;
             }
 
-            var fallbackLang = GetFallbackLang(dir, lang);
-            if (String.IsNullOrEmpty(fallbackLang) || fallbackLang == lang) 
+            var currentLang = Language._currentLanguage.ToString();
+            var fallbackLang = settings.GetFallbackLang(currentLang);
+            if (String.IsNullOrEmpty(fallbackLang) || fallbackLang == currentLang)
                 continue;
             if (File.Exists(Path.Combine(dir, fallbackLang, sheetTitle)))
             {
@@ -83,8 +73,8 @@ public static class LanguagePatch
             }
             else
             {
-                var asset = Resources.Load<TextAsset>($"Languages/{fallbackLang}_{sheetTitle}");
-                if (asset != null)
+                var originalGameAsset = Resources.Load<TextAsset>($"Languages/{fallbackLang}_{sheetTitle}");
+                if (originalGameAsset != null)
                 {
                     __result = true;
                     break;
@@ -99,17 +89,17 @@ public static class LanguagePatch
     private static void AddModdedLanguageFileContents(ref string __result, string sheetTitle)
     {
         var newResult = String.Empty;
-        foreach (string dir in SimpleSilksongLocalizerPlugin.ModLanguageDirectories)
+        foreach (var (dir, settings) in SimpleSilksongLocalizerPlugin.ModLanguageDirectories)
         {
             var currentLang = Language._currentLanguage.ToString();
-            var fallbackLang = GetFallbackLang(dir, currentLang);
+            var fallbackLang = settings.GetFallbackLang(currentLang);
             if (String.IsNullOrEmpty(fallbackLang) || fallbackLang == currentLang)
                 continue;
             var fallbackPath = Path.Combine(dir, fallbackLang, sheetTitle);
-            var asset = Resources.Load<TextAsset>($"Languages/{fallbackLang}_{sheetTitle}");
-            if (asset != null)
+            var originalGameAsset = Resources.Load<TextAsset>($"Languages/{fallbackLang}_{sheetTitle}");
+            if (originalGameAsset != null)
             {
-                newResult += Encryption.Decrypt(asset.text);
+                newResult += Encryption.Decrypt(originalGameAsset.text);
             }
             if (File.Exists(fallbackPath))
                 newResult += File.ReadAllText(fallbackPath);
@@ -117,7 +107,7 @@ public static class LanguagePatch
 
         newResult += __result;
         
-        foreach (string dir in SimpleSilksongLocalizerPlugin.ModLanguageDirectories)
+        foreach (var (dir, _) in SimpleSilksongLocalizerPlugin.ModLanguageDirectories)
         {
             var path = Path.Combine(dir, Language._currentLanguage.ToString(), sheetTitle);
             if (File.Exists(path))

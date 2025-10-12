@@ -2,17 +2,21 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using BepInEx;
+using BepInEx.Configuration;
 using BepInEx.Logging;
 using HarmonyLib;
+using Newtonsoft.Json;
 using TeamCherry.Localization;
 
 namespace SimpleSilksongLocalizer;
-
 public partial class SimpleSilksongLocalizerPlugin : BaseUnityPlugin
 {
-    internal static List<string> ModLanguageDirectories = [];
-    internal static List<string> ModRegisteredSheetTitles = [];
+    internal static Dictionary<string, LanguageSettings> ModLanguageDirectories = [];
+    internal static List<string> ModCustomSheetTitles = [];
+    //TODO: Make it actually possible to use custom languages without them having the General sheet
+    internal static List<string> ModCustomLanguages = [];
     internal static Dictionary<LanguageCode, Dictionary<string,Dictionary<string, string>>> ModExtraEntries = new ();
+    internal static ConfigEntry<bool> EnableFallbacks;
 
     public static new ManualLogSource Logger;
     private Harmony harmony;
@@ -23,6 +27,8 @@ public partial class SimpleSilksongLocalizerPlugin : BaseUnityPlugin
         Logger = base.Logger;
 
         harmony = new Harmony(Id);
+        EnableFallbacks = Config.Bind("Fallbacks", "Enable", false, "Enable fallback strings for untranslated text, if the source has them enabled");
+        
         Logger.LogInfo($"Plugin {Name} ({Id}) has loaded!");
     }
 
@@ -33,14 +39,15 @@ public partial class SimpleSilksongLocalizerPlugin : BaseUnityPlugin
         {
             foreach (var languageDir in pluginSubDir.EnumerateDirectories("Language", SearchOption.TopDirectoryOnly))
             {
-                Logger.LogInfo($"Found language directory in {pluginSubDir.Name}");
-                ModLanguageDirectories.Add(languageDir.FullName);
+                AddLanguageDirectory(languageDir.FullName);
             }
         }
     }
     
     private void Start()
     {
+        FindDirectories();
+
         // For initial load, present because patching `Language` at `Awake` or `OnEnable` causes a crash due to its static initializer
         Apply();
     }
@@ -60,18 +67,17 @@ public partial class SimpleSilksongLocalizerPlugin : BaseUnityPlugin
 
     private void Apply()
     {
-        FindDirectories();
-
-        foreach (var line in ModLanguageDirectories
-                     .Select(dir => Path.Combine(dir, "CustomSheetTitles.txt"))
-                     .Where(File.Exists)
-                     .SelectMany(File.ReadLines))
+        foreach (var setting in ModLanguageDirectories.Values)
         {
-            ModRegisteredSheetTitles.Add(line);
+            if (setting.CustomSheetTitles != null)
+                ModCustomSheetTitles.AddRange(setting.CustomSheetTitles);
+            if (setting.CustomLanguages != null) 
+                ModCustomLanguages.AddRange(setting.CustomLanguages);
         }
         
         originalSheetTitles = Language._settings.sheetTitles;
-        Language._settings.sheetTitles = Language._settings.sheetTitles.Union(ModRegisteredSheetTitles).ToArray();
+        
+        Language._settings.sheetTitles = Enumerable.Union(Language._settings.sheetTitles, ModCustomSheetTitles).ToArray();
         
         harmony.PatchAll(typeof(LanguagePatch));
         harmony.PatchAll(typeof(MenuLanguageSettingPatch));
@@ -83,7 +89,6 @@ public partial class SimpleSilksongLocalizerPlugin : BaseUnityPlugin
     private void Unapply()
     {
         harmony.UnpatchSelf();
-        ModLanguageDirectories.Clear();
         
         Language._settings.sheetTitles = originalSheetTitles;
         Language.LoadAvailableLanguages();
