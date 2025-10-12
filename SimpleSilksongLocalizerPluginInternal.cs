@@ -9,7 +9,7 @@ namespace SimpleSilksongLocalizer;
 public partial class SimpleSilksongLocalizerPlugin : BaseUnityPlugin
 {
     internal static List<string> ModLanguageDirectories = [];
-    internal static HashSet<string> ModRegisteredSheetTitles = [];
+    internal static List<string> ModRegisteredSheetTitles = [];
     internal static Dictionary<LanguageCode, Dictionary<string,Dictionary<string, string>>> ModExtraEntries = new ();
     
     private Harmony harmony;
@@ -41,8 +41,16 @@ public partial class SimpleSilksongLocalizerPlugin : BaseUnityPlugin
 
     private void Apply()
     {
+        foreach (var line in ModLanguageDirectories
+                     .Select(dir => Path.Combine(dir, "CustomSheetTitles.txt"))
+                     .Where(File.Exists)
+                     .SelectMany(File.ReadLines))
+        {
+            ModRegisteredSheetTitles.Add(line);
+        }
+        
         originalSheetTitles = Language._settings.sheetTitles;
-        ArrayUtils.Add(ref Language._settings.sheetTitles, ModRegisteredSheetTitles.ToArray());
+        Language._settings.sheetTitles = Language._settings.sheetTitles.Union(ModRegisteredSheetTitles).ToArray();
         
         harmony.PatchAll(typeof(LanguagePatch));
         harmony.PatchAll(typeof(MenuLanguageSettingPatch));
