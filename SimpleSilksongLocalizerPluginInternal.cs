@@ -14,7 +14,7 @@ public partial class SimpleSilksongLocalizerPlugin : BaseUnityPlugin
     internal static Dictionary<string, LanguageSettings?> ModLanguageDirectories = [];
     internal static List<string> ModCustomSheetTitles = [];
     //TODO: Make it actually possible to use custom languages without them having the General sheet
-    internal static List<string> ModCustomLanguages = [];
+    internal static List<LanguageCode> ModCustomLanguages = [];
     internal static Dictionary<LanguageCode, Dictionary<string,Dictionary<string, string>>> ModExtraEntries = new ();
     internal static ConfigEntry<bool> EnableFallbacks;
 
