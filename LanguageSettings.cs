@@ -18,7 +18,7 @@ internal class LanguageSettings
     };
     
     [JsonProperty(Required = Required.Default)]
-    public string[]? CustomSheetTitles { get; set; }
+    public string[]? CustomSheets { get; set; }
     
     [JsonProperty(Required = Required.Default, ItemConverterType = typeof(StringEnumConverter))]
     public LanguageCode[]? CustomLanguages { get; set; }

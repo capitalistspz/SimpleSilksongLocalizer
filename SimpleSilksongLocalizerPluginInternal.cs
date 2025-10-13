@@ -71,8 +71,8 @@ public partial class SimpleSilksongLocalizerPlugin : BaseUnityPlugin
         {
             if (setting == null)
                 continue;
-            if (setting.CustomSheetTitles != null)
-                ModCustomSheetTitles.AddRange(setting.CustomSheetTitles);
+            if (setting.CustomSheets != null)
+                ModCustomSheetTitles.AddRange(setting.CustomSheets);
             if (setting.CustomLanguages != null) 
                 ModCustomLanguages.AddRange(setting.CustomLanguages);
         }
