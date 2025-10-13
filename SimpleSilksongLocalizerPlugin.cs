@@ -45,16 +45,6 @@ public partial class SimpleSilksongLocalizerPlugin
         
     }
     
-    /// <summary>
-    /// Add the default language directory for a plugin
-    /// </summary>
-    /// <param name="plugin">Plugin to find the default sheet directory from</param>
-    public static void AddLanguageDirectory(BaseUnityPlugin plugin)
-    {
-        var dir = Path.GetDirectoryName(plugin.Info.Location)!;
-        AddLanguageDirectory(Path.Combine(dir, "Language"));
-    }
-    
     public static void AddSheet(LanguageCode languageCode, string sheet, Dictionary<string, string> entries)
     {
         var sheetDict = ModExtraEntries.GetOrInsertNew(languageCode).GetOrInsertNew(sheet);
