@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -27,7 +28,10 @@ public partial class SimpleSilksongLocalizerPlugin
             .EnumerateFiles("LanguageSettings.json")
             .FirstOrDefault();
         if (settingsFileInfo == null)
+        {
+            ModLanguageDirectories.Add(sheetDirectory, null);
             return;
+        }
         var settingsFilePath = settingsFileInfo.FullName;
         try
         {
@@ -38,9 +42,14 @@ public partial class SimpleSilksongLocalizerPlugin
                 return;
             ModLanguageDirectories.Add(sheetDirectory, settings);
         }
-        catch (Newtonsoft.Json.JsonSerializationException)
+        catch (Newtonsoft.Json.JsonSerializationException e)
         {
-            Logger.LogError($"Failed to parse language settings at '{settingsFilePath}'");
+            Logger.LogError(
+                $"Failed to parse language settings at '{settingsFilePath}': {e}");
+        }
+        catch (Exception e)
+        {
+            Logger.LogError($"Unexpected exception: {e}");
         }
         
     }

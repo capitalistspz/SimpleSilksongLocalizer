@@ -62,7 +62,7 @@ public static class LanguagePatch
             }
 
             var currentLang = Language._currentLanguage.ToString();
-            var fallbackLang = settings.GetFallbackLang(currentLang);
+            var fallbackLang = settings?.GetFallbackLang(currentLang);
             if (String.IsNullOrEmpty(fallbackLang) || fallbackLang == currentLang)
                 continue;
             if (File.Exists(Path.Combine(dir, fallbackLang, sheetTitle)))
@@ -81,7 +81,7 @@ public static class LanguagePatch
         foreach (var (dir, settings) in SimpleSilksongLocalizerPlugin.ModLanguageDirectories)
         {
             var currentLang = Language._currentLanguage.ToString();
-            var fallbackLang = settings.GetFallbackLang(currentLang);
+            var fallbackLang = settings?.GetFallbackLang(currentLang);
             if (String.IsNullOrEmpty(fallbackLang) || fallbackLang == currentLang)
                 continue;
             var fallbackPath = Path.Combine(dir, fallbackLang, sheetTitle);
