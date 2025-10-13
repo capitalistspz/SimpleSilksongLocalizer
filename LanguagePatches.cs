@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reflection.Emit;
 using System.Xml;
 using HarmonyLib;
@@ -71,16 +70,6 @@ public static class LanguagePatch
                 __result = true;
                 break;
             }
-            else
-            {
-                var originalGameAsset = Resources.Load<TextAsset>($"Languages/{fallbackLang}_{sheetTitle}");
-                if (originalGameAsset != null)
-                {
-                    __result = true;
-                    break;
-                }
-            }
-            
         }
     }
     
@@ -96,11 +85,6 @@ public static class LanguagePatch
             if (String.IsNullOrEmpty(fallbackLang) || fallbackLang == currentLang)
                 continue;
             var fallbackPath = Path.Combine(dir, fallbackLang, sheetTitle);
-            var originalGameAsset = Resources.Load<TextAsset>($"Languages/{fallbackLang}_{sheetTitle}");
-            if (originalGameAsset != null)
-            {
-                newResult += Encryption.Decrypt(originalGameAsset.text);
-            }
             if (File.Exists(fallbackPath))
                 newResult += File.ReadAllText(fallbackPath);
         }
