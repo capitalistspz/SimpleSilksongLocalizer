@@ -28,19 +28,30 @@ public partial class SimpleSilksongLocalizerPlugin
             .FirstOrDefault();
         if (settingsFileInfo == null)
             return;
-        var settings = Newtonsoft.Json.JsonConvert.DeserializeObject<LanguageSettings>(File.ReadAllText(settingsFileInfo.FullName));
-        if (settings == null)
-            return;
-        ModLanguageDirectories.Add(sheetDirectory, settings);
+        var settingsFilePath = settingsFileInfo.FullName;
+        try
+        {
+            var settings =
+                Newtonsoft.Json.JsonConvert.DeserializeObject<LanguageSettings>(
+                    File.ReadAllText(settingsFilePath));
+            if (settings == null)
+                return;
+            ModLanguageDirectories.Add(sheetDirectory, settings);
+        }
+        catch (Newtonsoft.Json.JsonSerializationException)
+        {
+            Logger.LogError($"Failed to parse language settings at '{settingsFilePath}'");
+        }
+        
     }
     
     /// <summary>
-    /// Add the default sheet directory for a plugin
+    /// Add the default language directory for a plugin
     /// </summary>
     /// <param name="plugin">Plugin to find the default sheet directory from</param>
     public static void AddLanguageDirectory(BaseUnityPlugin plugin)
     {
-        var dir = Path.GetDirectoryName(plugin.Info.Location);
+        var dir = Path.GetDirectoryName(plugin.Info.Location)!;
         AddLanguageDirectory(Path.Combine(dir, "Language"));
     }
     
@@ -58,6 +69,4 @@ public partial class SimpleSilksongLocalizerPlugin
         var sheetDict = ModExtraEntries.GetOrInsertNew(languageCode).GetOrInsertNew(sheet);
         sheetDict[key] = value;
     }
-    
-    
 }
