@@ -53,7 +53,7 @@ jobs:
     - name: Upload a Build Artifact
       uses: actions/upload-artifact@v4.6.2
       with:
-        name: SimpleSilksongLocalizer-${{github.ref_name}}
+        name: SimpleSilksongLocalizer-${{ steps.getter.outputs.VERSION }}-${{ github.sha	}}
         # A file, directory or wildcard pattern that describes what to upload
         path: "export"
 
