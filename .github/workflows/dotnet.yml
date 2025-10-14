@@ -38,10 +38,11 @@ jobs:
     - name: Get Distribution Name
       id: getter
       run: |
-        DIST_NAME=${{inputs.dist_name}}
+        DIST_NAME="${{inputs.dist_name}}"
         [ -z ${DIST_NAME} ] GITHUB_ENV=dotnet msbuild -getProperty:AssemblyTitle ${{ inputs.project }}
-        echo "DIST_NAME=$DIST_NAME" >> "$GITHUB_OUTPUT"
+        echo "DIST_NAME=$DIST_NAME" >> $GITHUB_OUTPUT
         VERSION=$(dotnet msbuild -getProperty:Version ${{ inputs.project }}))
+        echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
     - name: Copy distribution files
       run: |
         cp ./README.md ./export/
