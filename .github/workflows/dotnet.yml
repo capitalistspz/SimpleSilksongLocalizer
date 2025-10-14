@@ -5,9 +5,11 @@ name: .NET
 
 on:
   push:
-    branches: [ "br2" ]
+    branches:
+      - br2
   pull_request:
-    branches: [ "br2" ]
+    branches: 
+      - br2
   workflow_dispatch:
 jobs:
   build:
