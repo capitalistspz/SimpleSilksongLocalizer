@@ -6,7 +6,7 @@ using TeamCherry.Localization;
 
 namespace SimpleSilksongLocalizer;
 
-internal class LanguageSettings
+internal class LocalizationSettings
 {
     internal class FallbackSettings
     {

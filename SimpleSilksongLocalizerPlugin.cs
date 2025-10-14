@@ -16,31 +16,31 @@ public partial class SimpleSilksongLocalizerPlugin
     /// </summary>
     public void RegisterSheet(string sheetTitle)
     {
-        ModCustomSheetTitles.Add(sheetTitle);
+        ModCustomSheets.Add(sheetTitle);
     }
     /// <summary>
     /// Add a directory in which sheets are located
     /// </summary>
-    public static void AddLanguageDirectory(string sheetDirectory)
+    public static void AddLocalizationDirectory(string localizationDirectory)
     {
-        var sheetDirInfo = new DirectoryInfo(sheetDirectory);
+        var sheetDirInfo = new DirectoryInfo(localizationDirectory);
         var settingsFileInfo = sheetDirInfo
-            .EnumerateFiles("LanguageSettings.json")
+            .EnumerateFiles("LocalizationSettings.json")
             .FirstOrDefault();
         if (settingsFileInfo == null)
         {
-            ModLanguageDirectories.Add(sheetDirectory, null);
+            ModLocalizationDirectories.Add(localizationDirectory, null);
             return;
         }
         var settingsFilePath = settingsFileInfo.FullName;
         try
         {
             var settings =
-                Newtonsoft.Json.JsonConvert.DeserializeObject<LanguageSettings>(
+                Newtonsoft.Json.JsonConvert.DeserializeObject<LocalizationSettings>(
                     File.ReadAllText(settingsFilePath));
             if (settings == null)
                 return;
-            ModLanguageDirectories.Add(sheetDirectory, settings);
+            ModLocalizationDirectories.Add(localizationDirectory, settings);
         }
         catch (Newtonsoft.Json.JsonSerializationException e)
         {

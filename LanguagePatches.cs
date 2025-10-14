@@ -52,7 +52,7 @@ public static class LanguagePatch
     {
         if (__result)
             return;
-        foreach (var (dir, settings) in SimpleSilksongLocalizerPlugin.ModLanguageDirectories)
+        foreach (var (dir, settings) in SimpleSilksongLocalizerPlugin.ModLocalizationDirectories)
         {
             var sheetPath = Path.Combine(dir, lang, sheetTitle);
             if (File.Exists(sheetPath))
@@ -78,7 +78,7 @@ public static class LanguagePatch
     private static void AddModdedLanguageFileContents(ref string __result, string sheetTitle)
     {
         var newResult = String.Empty;
-        foreach (var (dir, settings) in SimpleSilksongLocalizerPlugin.ModLanguageDirectories)
+        foreach (var (dir, settings) in SimpleSilksongLocalizerPlugin.ModLocalizationDirectories)
         {
             var currentLang = Language._currentLanguage.ToString();
             var fallbackLang = settings?.GetFallbackLang(currentLang);
@@ -91,7 +91,7 @@ public static class LanguagePatch
 
         newResult += __result;
         
-        foreach (var (dir, _) in SimpleSilksongLocalizerPlugin.ModLanguageDirectories)
+        foreach (var (dir, _) in SimpleSilksongLocalizerPlugin.ModLocalizationDirectories)
         {
             var path = Path.Combine(dir, Language._currentLanguage.ToString(), sheetTitle);
             if (File.Exists(path))

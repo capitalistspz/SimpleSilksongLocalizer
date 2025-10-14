@@ -11,8 +11,8 @@ using TeamCherry.Localization;
 namespace SimpleSilksongLocalizer;
 public partial class SimpleSilksongLocalizerPlugin : BaseUnityPlugin
 {
-    internal static Dictionary<string, LanguageSettings?> ModLanguageDirectories = [];
-    internal static List<string> ModCustomSheetTitles = [];
+    internal static Dictionary<string, LocalizationSettings?> ModLocalizationDirectories = [];
+    internal static List<string> ModCustomSheets = [];
     //TODO: Make it actually possible to use custom languages without them having the General sheet
     internal static List<LanguageCode> ModCustomLanguages = [];
     internal static Dictionary<LanguageCode, Dictionary<string,Dictionary<string, string>>> ModExtraEntries = new ();
@@ -37,9 +37,9 @@ public partial class SimpleSilksongLocalizerPlugin : BaseUnityPlugin
         var pluginDir = new DirectoryInfo(BepInEx.Paths.PluginPath);
         foreach (var pluginSubDir in pluginDir.EnumerateDirectories("*", SearchOption.TopDirectoryOnly))
         {
-            foreach (var languageDir in pluginSubDir.EnumerateDirectories("Language", SearchOption.TopDirectoryOnly))
+            foreach (var languageDir in pluginSubDir.EnumerateDirectories("SSL.Localization", SearchOption.TopDirectoryOnly))
             {
-                AddLanguageDirectory(languageDir.FullName);
+                AddLocalizationDirectory(languageDir.FullName);
             }
         }
     }
@@ -67,19 +67,19 @@ public partial class SimpleSilksongLocalizerPlugin : BaseUnityPlugin
 
     private void Apply()
     {
-        foreach (var setting in ModLanguageDirectories.Values)
+        foreach (var setting in ModLocalizationDirectories.Values)
         {
             if (setting == null)
                 continue;
             if (setting.CustomSheets != null)
-                ModCustomSheetTitles.AddRange(setting.CustomSheets);
+                ModCustomSheets.AddRange(setting.CustomSheets);
             if (setting.CustomLanguages != null) 
                 ModCustomLanguages.AddRange(setting.CustomLanguages);
         }
         
         originalSheetTitles = Language._settings.sheetTitles;
         
-        Language._settings.sheetTitles = Enumerable.Union(Language._settings.sheetTitles, ModCustomSheetTitles).ToArray();
+        Language._settings.sheetTitles = Enumerable.Union(Language._settings.sheetTitles, ModCustomSheets).ToArray();
         
         harmony.PatchAll(typeof(LanguagePatch));
         harmony.PatchAll(typeof(MenuLanguageSettingPatch));
