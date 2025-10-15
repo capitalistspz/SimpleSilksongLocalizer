@@ -5,7 +5,7 @@ This mod makes it (relatively) easy to replace text, add translatable text, and 
 
 ## Installation
 
-1. Download and install [BepInExPack Silksong](https://thunderstore.io/c/hollow-knight-silksong/p/BepInEx/BepInExPack_Silksong/).
+1. Download and install [BepInExPack Silksong]([https://thunderstore.io/c/hollow-knight-silksong/p/BepInEx/BepInExPack_Silksong/](https://raw.githubusercontent.com/capitalistspz/SimpleSilksongLocalizer/master/icon.png).
 2. Download this mod and place it in `<BepInEx Folder>/plugins`
 
 ## Usage
