@@ -1,0 +1,24 @@
+[config]
+schemaVersion = "0.0.1"
+
+[package]
+namespace = "capitalists"
+description = "A simple text replacement plugin/library"
+websiteUrl = "https://github.com/capitalistspz/SimpleSilksongLocalizer"
+containsNsfwContent = false
+[package.dependencies]
+BepInEx-BepInExPack_Silksong = "5.4.2304"
+
+[build]
+icon = "./icon.png"
+readme = "./README.md"
+outdir = "./ts-build"
+[[build.copy]]
+source = "./bin/Debug/netstandard2.1"
+target = ""
+
+[publish]
+repository = "https://thunderstore.io"
+communities = [ "hollow-knight-silksong" ]
+[publish.categories]
+hollow-knight-silksong = [ "mods", "libraries" ]

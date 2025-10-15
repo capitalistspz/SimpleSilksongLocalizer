@@ -47,6 +47,12 @@
         <RemoveDir Directories="$(IntermediateOutputPath)/archive"/>
         <MakeDir Directories="$(ExportFolder)"/>
         <Copy SourceFiles="@(Binaries)" DestinationFolder="$(IntermediateOutputPath)/archive"/>
-        <ZipDirectory SourceDirectory="$(IntermediateOutputPath)/archive" DestinationFile="$(ExportFolder)/$(TargetName).zip" Overwrite="True"/>
+        <ZipDirectory SourceDirectory="$(IntermediateOutputPath)/archive" DestinationFile="$(ExportFolder)/$(TargetName)-$(Version).zip" Overwrite="True"/>
+    </Target>
+    
+    <Target Name="Thunderstore" AfterTargets="PostBuildEvent">
+        <Exec Command="dotnet tool restore" />
+        <Exec Command="dotnet tcli build --package-name &quot;$(AssemblyTitle)&quot; --package-version $(Version)"
+              StandardOutputImportance="High" StandardErrorImportance="High"/>
     </Target>
 </Project>

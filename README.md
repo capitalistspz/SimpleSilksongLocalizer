@@ -1,5 +1,5 @@
 # Simple Silksong Localizer
-![icon](dist/icon.png)
+![icon](icon.png)
 
 This mod makes it (relatively) easy to replace text, add translatable text, and add entire new languages to the game.
 
